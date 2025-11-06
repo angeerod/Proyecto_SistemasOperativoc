@@ -1,0 +1,6 @@
+ls -la
+echo Prueba redirección > salida.txt
+ls -l & echo paralelo & sleep 1
+cd /tmp
+pwd
+exit

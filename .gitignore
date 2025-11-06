@@ -1,0 +1,8 @@
+# Build outputs
+proyecto_so
+/tests/test_version
+*.o
+
+# Editor files
+.vscode/
+*.swp

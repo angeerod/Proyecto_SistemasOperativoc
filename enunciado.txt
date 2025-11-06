@@ -1,0 +1,118 @@
+IF4001 - Sistemas Operativos
+Proyecto del curso 
+VALOR DEL pROYECTO: 15% 
+FECHA DE INICIO DEL PROYECTO: 3 de setiembre del 2025
+FECHA DE ENTREGA FINAL: 20 de noviembre del 2025
+
+Se implementara un intérprete de línea de comandos (CLI) o, como se le conoce más comúnmente, un shell . El shell debería funcionar básicamente de la siguiente manera: al escribir un comando (en respuesta a su solicitud), crea un proceso secundario que ejecuta el comando introducido y, al finalizar, solicita más información al usuario.
+Requerimientos del programa
+Tu shell básico, llamado gtesh, es básicamente un bucle interactivo: imprime repetidamente un mensaje gtesh> (observa el espacio después del signo mayor que), analiza la entrada, ejecuta el comando especificado en esa línea y espera a que finalice. Esto se repite hasta que el usuario escribe exit. El nombre del ejecutable final debería ser gtesh.
+
+El shell puede invocarse sin argumentos o con uno solo; cualquier otra opción es un error. Aquí está la forma sin argumentos:
+
+prompt> ./gtesh
+gtesh> 
+
+En este punto, gtesh está en ejecución y listo para aceptar comandos.El modo anterior se denomina modo interactivo y permite al usuario escribir comandos directamente. El shell también admite el modo por lotes , que lee la entrada de un archivo por lotes y ejecuta los comandos desde allí. Así es como se ejecuta el shell con un archivo por lotes llamado batch.txt
+
+prompt> ./gtesh batch.txt
+
+Una diferencia entre los modos por lotes e interactivo: en el modo interactivo, se imprime un mensaje ( gtesh> ). En el modo por lotes, no se debe imprimir ningún mensaje.
+
+Debes estructurar tu shell de forma que cree un proceso para cada nuevo comando (la excepción son los comandos integrados , que se describen más adelante). Tu shell básico debe ser capaz de analizar un comando y ejecutar el programa correspondiente. Por ejemplo, si el usuario escribe ls -la /tmp, tu shell debe ejecutar el programa /bin/ls con los argumentos dados -la y /tmp.
+
+Estructura
+Shell básico
+El shell es muy simple (conceptualmente): se ejecuta en un bucle while, solicitando repetidamente información para indicarle qué comando ejecutar. Luego, ejecuta ese comando. El bucle continúa indefinidamente hasta que el usuario escribe el comando integrado exit, momento en el que finaliza. ¡Listo!
+
+Para leer líneas de entrada, debe usar getline(). Esto le permite obtener líneas de entrada de cualquier longitud con facilidad. Generalmente, el shell se ejecuta en modo interactivo , donde el usuario escribe un comando (uno a la vez) y el shell actúa en consecuencia. Sin embargo, su shell también admite el modo por lotes , en el que se le proporciona un archivo de entrada de comandos; en este caso, el shell no debe leer la entrada del usuario (stdin), sino de este archivo para obtener los comandos a ejecutar.
+
+En cualquier modo, si llega al marcador de final de archivo (EOF), debe llamar exit(0)y salir sin problemas.
+
+Para analizar la línea de entrada en sus partes constituyentes, puede usar strsep(). Lea atentamente la página del manual para obtener más detalles.
+
+Para ejecutar comandos, consulte fork(), exec(), y wait()/waitpid(). Consulte las páginas del manual de estas funciones para obtener una breve descripción general.
+
+Observará que la familia incluye diversos comandos exec; para este proyecto, debe usar . execv. No debería usar la llamada a la función system para ejecutar un comando. Recuerde que si la ejecución es correcta, no retornará; si retorna, significa que hubo un error (por ejemplo, el comando no existe).
+
+Paths:
+En nuestro ejemplo anterior, el usuario escribió, ls pero el shell sabía que debía ejecutar el programa /bin/ls. ¿Cómo lo sabe?
+
+Resulta que el usuario debe especificar una variable de ruta para describir el conjunto de directorios donde se buscarán los ejecutables; el conjunto de directorios que componen la ruta a veces se denomina ruta de búsqueda del shell. La variable de ruta contiene la lista de todos los directorios que se buscarán, en orden, cuando el usuario escriba un comando.
+
+Importante: Tenga en cuenta que el shell en sí no implementa ls u otros comandos (excepto los integrados). Simplemente busca esos ejecutables en uno de los directorios especificados path y crea un nuevo proceso para ejecutarlos.
+
+Para comprobar si un archivo específico existe en un directorio y es ejecutable, considere la llamada al sistema access(). Por ejemplo, si el usuario escribe ls, y la ruta está configurada para incluir tanto , /bin como /usr/bin, intente access("/bin/ls", X_OK). Si esto falla, intente "/usr/bin/ls". Si esto también falla, se trata de un error.
+
+Su ruta de shell inicial debe contener un directorio:/bin
+
+Comandos incorporados
+
+Cada vez que su shell acepte un comando, debe verificar si es un comando predefinido . De ser así, no debe ejecutarse como otros programas. En su lugar, su shell invocará la implementación del comando predefinido. Por ejemplo, para implementar el comando predefinido exit, simplemente invoque exit(0);el código fuente deseado, lo que cerrará el shell.
+
+En este proyecto, debes implementar exit, cd, y path como comandos integrados.
+
+exit: Cuando el usuario escribe exit, el shell simplemente debe llamar a la exit llamada del sistema con 0 como parámetro.
+
+cd: Siempre se acepta un argumento (0 o más de 1 argumento se considera un error). Para cambiar de directorio, utilice la chdir() llamada al sistema con el argumento proporcionado por el usuario; si chdir falla, también se considera un error.
+
+path: El comando path acepta cero o más argumentos, cada uno separado por un espacio. Un uso típico sería el siguiente: gtesh> path /bin /usr/bin, que añadiría /bin`and` /usr/bin a la ruta de búsqueda del shell. Si el usuario deja `path` vacío, el shell no podrá ejecutar ningún programa (excepto los comandos predefinidos). El comando path siempre sobrescribe la ruta anterior con la nueva.
+
+Redirección
+
+Muchas veces, un usuario de shell prefiere enviar la salida de un programa a un archivo en lugar de a la pantalla. Normalmente, un shell ofrece esta práctica función con el carácter >. Formalmente, esto se denomina redirección de la salida estándar. Para que los usuarios de shell estén satisfechos, su shell también debería incluir esta función, pero con una pequeña modificación (que se explica a continuación).
+
+Por ejemplo, si un usuario escribe ls -la /tmp > output, no se imprimirá nada en pantalla. En su lugar, la salida estándar del programa ls se redirigirá al archivo output. Además, la salida de error estándar del programa se redirigirá al archivo output.
+Si el archivo output existe antes de ejecutar el programa, debe simplemente sobrescribirlo (después de truncarlo).
+
+El formato exacto de la redirección es un comando (y posiblemente algunos argumentos) seguido del símbolo de redirección y, a continuación, un nombre de archivo. La presencia de varios operadores de redirección o de varios archivos a la derecha del símbolo de redirección es un error.
+
+Comandos paralelos
+
+Su shell también permitirá al usuario ejecutar comandos en paralelo. Esto se logra con el operador "&" de la siguiente manera:
+
+gtesh> cmd1 & cmd2 args1 args2 & cmd3 args1
+
+En este caso, en lugar de ejecutarse cmd1 y luego esperar a que finalice, su shell debería ejecutar cmd1, cmd2, y cmd3 (cada uno con los argumentos que el usuario le haya pasado) en paralelo, antes de esperar a que alguno de ellos se complete.
+
+Luego, tras iniciar todos estos procesos, asegúrese de usar wait() (o waitpid) para esperar a que se completen. Una vez finalizados todos los procesos, devuelva el control al usuario como de costumbre (o, si está en modo por lotes, continúe con la siguiente línea).
+
+Errores del programa
+
+Debe imprimir este único mensaje de error siempre que encuentre un error de cualquier tipo:
+
+  char error_message[30] = "An error has occurred\n";
+   write(STDERR_FILENO, error_message, strlen(error_message));
+
+El mensaje de error debe imprimirse en stderr (error estándar), como se muestra arriba.
+
+Tras la mayoría de los errores, el shell simplemente continúa procesando tras mostrar el único mensaje de error. Sin embargo, si se invoca con más de un archivo, o si se le pasa un archivo por lotes erróneo, debería finalizar llamando a exit(1).
+
+Existe una diferencia entre los errores que detecta tu shell y los que detecta el programa. Tu shell debería detectar todos los errores de sintaxis especificados en el proyecto. Si la sintaxis del comando parece correcta, simplemente ejecuta el programa especificado. Si hay algún error relacionado con el programa (ls por ejemplo, argumentos no válidos al ejecutarlo), el shell no tiene que preocuparse (el programa imprimirá sus propios mensajes de error y saldrá).
+
+Criterio
+Descripción
+Ponderación (%)
+Funcionalidad básica
+Soporta modo interactivo y por lotes, exit, cd, path, prompt, y manejo de procesos.
+25
+Manejo de procesos
+Uso de fork/exec/wait, manejo de errores, sin fallos graves.
+20
+Búsqueda y Ejecución
+Búsqueda en PATH, uso de access(), manejo de comandos no encontrados
+15
+Comandos incorporados
+exit, cd, path implementados correctamente.
+10
+Comandos Paralelos
+Operador &, ejecución simultánea, uso correcto de wait()
+10
+Redirección de Salida
+Operador >, redirección de stdout y stderr, manejo de archivos
+10
+Robustez y manejo de errores
+Mensajes de error claros, sin crashes.
+10
+
+
