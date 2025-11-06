@@ -164,6 +164,22 @@ static cmd_t *parse_command(char *line) {
     char *gt_pos = strchr(line, '>');
     
     if (gt_pos) {
+        // Verificar que hay algo antes del >
+        char *tmp = line;
+        int has_command = 0;
+        while (tmp < gt_pos) {
+            if (*tmp != ' ' && *tmp != '\t') {
+                has_command = 1;
+                break;
+            }
+            tmp++;
+        }
+        if (!has_command) {
+            util_print_error();
+            free_command(cmd);
+            return NULL;
+        }
+
         *gt_pos = '\0';
         redir_part = gt_pos + 1;
         while (*redir_part == ' ' || *redir_part == '\t') redir_part++;
@@ -430,5 +446,6 @@ int main(int argc, char *argv[]) {
     }
 
     free(line);
+    
     exit(0);
 }
