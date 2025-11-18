@@ -1,10 +1,7 @@
-# Proyecto SO (esqueleto)
-
-Esqueleto inicial del proyecto en C para el enunciado "Enunciado Proyecto 2025 (1).pdf".
+# Proyecto SO 
 
 Contenido creado:
 - `src/` — código fuente (`project.c`) con toda la lógica consolidada en un solo archivo.
-- `requirements.md` — marcador de posición pendiente extracción completa del enunciado.
 
 Cómo compilar y ejecutar:
 
@@ -80,45 +77,66 @@ El shell imprime "An error has occurred\n" en stderr cuando encuentra errores co
 - Argumentos inválidos para builtins
 - Error al abrir archivo en modo batch
 
-## Criterios de Evaluación Cumplidos
+## Autores
+Angeles y los otros (felix, chino, justin y rafael david hernandez gonzales)
 
-1. Funcionalidad básica (25%):
-   - ✓ Modo interactivo con prompt
-   - ✓ Modo batch
-   - ✓ Comando exit
-   - ✓ Búsqueda en PATH
+# Manual
+## Shell
+----------------------------------------------------------------------------------------------------------
+Inicial:
+gcc -Wall -Wextra src/project.c -o gtesh    #crea ejecutable
+./gtesh                                     #entra al shell
 
-2. Manejo de procesos (20%):
-   - ✓ Uso correcto de fork/exec/wait
-   - ✓ Manejo de errores
-   - ✓ Sin fallos graves
+Comandos básicos:
+ls -la            # Muestra el listado del directorio
+pwd               # Muestra la ruta actual
+echo Hola Mundo   # Imprime "Hola Mundo"
 
-3. Búsqueda y Ejecución (15%):
-   - ✓ Búsqueda en PATH
-   - ✓ Uso de access()
-   - ✓ Manejo de comandos no encontrados
+Comandos incorporados (builtins):
+path            # vaciar el PATH
+path /bin /usr/bin   # agregar estos directorios al PATH
+cd /tmp         # cambiar al directorio /tmp
+pwd             # Muestra directorio /tmp
+cd ..           # volver al directorio anterior
 
-4. Comandos incorporados (10%):
-   - ✓ exit implementado
-   - ✓ cd implementado
-   - ✓ path implementado
+Redirección de salida: (ir antes al directorio del proyecto)
 
-5. Comandos Paralelos (10%):
-   - ✓ Operador &
-   - ✓ Ejecución simultánea
-   - ✓ Uso correcto de wait()
+Ejemplo 1:
+ls -la > listado.txt    # No muestra nada en pantalla
+cat listado.txt         # Muestra el contenido del archivo
 
-6. Redirección de Salida (10%):
-   - ✓ Operador >
-   - ✓ Redirección de stdout y stderr
-   - ✓ Manejo de archivos
+Ejemplo 2:
+echo prueba_redireccion > salida.txt  # No muestra nada en pantalla
+cat salida.txt                # Muestra el contenido del archivo
 
-7. Robustez y manejo de errores (10%):
-   - ✓ Mensaje de error único y claro
-   - ✓ Sin crashes
-   - ✓ Validación de entrada
+Comandos paralelos:
+sleep 2 & echo "Primero" & echo "Segundo"   # Muestra "Primero" y "Segundo" casi inmediatamente
 
-## Autor
+Manejo de errores:
+cd              # Muestra error (requiere un argumento)
+cd /noexiste    # Muestra error
+ls > > salida.txt   # Muestra error (redirección inválida)
+comandoinvalido # Muestra error
+ls > salida.txt listado.txt    # varias cosas a la derecha
+> salida.txt   # redirección sin comando 
+ls > salida.txt > listado.txt  # múltiples '>'
 
-Angeles Rodriguez
-y los otros
+
+Para salir:
+exit            # Termina el shell
+
+## Modo batch
+----------------------------------------------------------------------------------------------------------
+Crear un archivo batch (fuera de gtesh):
+
+cat > prueba_batch.txt <<'EOF'
+ls -la
+echo DesdeBatch > salida_batch.txt
+sleep 1 & echo uno & echo dos
+cd /tmp
+pwd
+exit
+EOF
+
+Luego:
+./gtesh prueba_batch.txt
