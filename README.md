@@ -78,7 +78,7 @@ El shell imprime "An error has occurred\n" en stderr cuando encuentra errores co
 - Error al abrir archivo en modo batch
 
 ## Autores
-Angeles y los otros (felix, chino, justin y rafael david hernandez gonzales)
+Angeles y los otros (felizzz, 中國人, justin y rafael david hernandez gonzales)
 
 # Manual
 ## Shell
