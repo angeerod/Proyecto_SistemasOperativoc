@@ -1,6 +1,0 @@
-ls -la
-echo DesdeBatch > salida_batch.txt
-sleep 1 & echo uno & echo dos
-cd /tmp
-pwd
-exit

@@ -8,13 +8,15 @@
 #include <sys/types.h>  // pid_t, size_t
 #include <sys/stat.h>   
 #include <fcntl.h>      // open, O_WRONLY, O_CREAT, O_TRUNC
-#include <errno.h>      
+#include <errno.h>
+#include <readline/readline.h>  // readline: edición interactiva de línea
+#include <readline/history.h>   // add_history: historial de comandos      
 
 // Constantes del programa
 #define MAX_PATH_DIRS 256       // Máximo número de directorios en PATH
 #define MAX_PARALLEL_CMDS 64    // Máximo número de comandos paralelos con &
-#define PROMPT "gtesh> "        // Prompt en modo interactivo
-#define ERROR_MSG "An error has occurred\n"  // Mensaje único de error
+#define PROMPT "\033[35mgtesh>\033[0m "        // Prompt en morado
+#define ERROR_MSG "\033[31mAn error has occurred\033[0m\n"  // Mensaje de error en rojo
 
 // Estructura para representar un comando individual
 typedef struct {
@@ -477,24 +479,33 @@ int main(int argc, char *argv[]) {
         exit(0);  // Terminar con código 0 (batch exitoso)
     }
 
-    // ====== MODO INTERACTIVO ======
+    // ====== MODO INTERACTIVO (con readline para edición de línea) ======
+    // Imprimir banner de bienvenida
+    printf("\n\033[1;35m╔═══════════════════════════════════╗\033[0m\n");
+    printf("\033[1;35m║\033[1;36m    ✦ GTESH Shell v1.0 ✦           \033[1;35m║\033[0m\n");
+    printf("\033[1;35m║\033[0m  Usa Ctrl+D para salir            \033[1;35m║\033[0m\n");
+    printf("\033[1;35m╚═══════════════════════════════════╝\033[0m\n\n");
+    
     char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
 
     while (1) {  // Bucle infinito hasta EOF o exit
-        printf("%s", PROMPT);  // Imprimir prompt "gtesh> "
-        fflush(stdout);  // Asegurar que el prompt se muestra inmediatamente
-
-        // Leer línea del usuario (stdin)
-        read = getline(&line, &len, stdin);
-        if (read == -1) {
+        // readline() lee con edición interactiva (flechas, historial, etc.)
+        // El prompt se pasa como argumento, no necesitamos printf
+        if (line) {
+            free(line);  // Liberar línea anterior (readline aloca memoria)
+            line = NULL;
+        }
+        
+        line = readline(PROMPT);  // Lee línea con edición completa
+        
+        if (!line) {
             break;  // EOF (Ctrl+D) -> salir del bucle
         }
-
-        // Eliminar newline al final
-        if (read > 0 && line[read-1] == '\n') {
-            line[read-1] = '\0';
+        
+        // Si la línea no está vacía, agregarla al historial
+        // Esto permite usar ↑/↓ para navegar comandos anteriores
+        if (*line) {
+            add_history(line);
         }
 
         // Parsear y ejecutar (igual que en modo batch)
